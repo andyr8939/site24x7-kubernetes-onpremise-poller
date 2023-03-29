@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: site24x7
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: site24x7-poller
+  namespace: site24x7
+  labels:
+    app: site24x7-poller
+spec:
+  selector:
+    matchLabels:
+      app: site24x7-poller
+  serviceName: "site24x7-poller"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: site24x7-poller
+    spec:
+      containers:
+      - image: monopot/site24x7-poller:1.0.0
+        name: site24x7-poller
+        resources:
+          limits:
+            memory: 700M
+            cpu: 200m
+          requests:
+            memory: 256M
+            cpu: 50m
+        env:
+        - name: MY_247_DEVICE_KEY
+          value: "PUT_YOUR_MSP_KEY_HERE"
+      nodeSelector:
+        kubernetes.io/os: linux

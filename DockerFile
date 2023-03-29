@@ -1,0 +1,33 @@
+FROM mcr.microsoft.com/openjdk/jdk:17-ubuntu
+
+LABEL Name=site24x7-poller
+
+LABEL Description="Custom Poller for Site 24x7 in Kubernetes"
+
+WORKDIR /app
+
+# Add Required Files to the Image
+COPY Site24x7OnPremisePoller_64bit.bin /app/
+COPY entrypoint.sh /app/
+
+# Update image and install tools
+RUN apt-get -y update && apt-get -y upgrade && apt-get install -y unzip
+
+# Get everything ready to run
+RUN chmod 755 Site24x7OnPremisePoller_64bit.bin && chmod 755 entrypoint.sh
+
+# Install the agent silently
+RUN /app/Site24x7OnPremisePoller_64bit.bin -i silent
+
+# Move the Entrypoint Script now its installed
+RUN cp /app/entrypoint.sh /opt/Site24x7OnPremisePoller/entrypoint.sh && chmod 755 /opt/Site24x7OnPremisePoller/entrypoint.sh
+
+# Define a placeholder environment variable ready for later
+ENV MY_247_DEVICE_KEY=REPLACEME
+
+WORKDIR /opt/Site24x7OnPremisePoller
+
+# Execute the script which does the variable replacement in the config file and then starts the poller
+ENTRYPOINT [ "./entrypoint.sh" ]
+
+
